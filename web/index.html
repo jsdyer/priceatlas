@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17211c">
+  <meta name="description" content="Compare Canadian grocery price histories for British Columbia, Nova Scotia and Canada.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Canadian Price Atlas · CoolCode.ca</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.mjs" type="module"></script>
+</head>
+<body>
+<header class="dark">
+  <nav class="wrap" aria-label="Main">
+    <a href="https://coolcode.ca/" class="brand"><b aria-hidden="true">&gt;_</b>CoolCode.ca</a>
+    <a href="#sources">Data &amp; methodology</a>
+  </nav>
+  <div class="wrap hero">
+    <div><h1>Canadian<br>Price Atlas<span>.</span></h1><p>Compare grocery price histories across British Columbia, Nova Scotia, and Canada.</p></div>
+    <aside class="overview">
+      <h2 id="overview-product">Latest published observation</h2>
+      <dl>
+        <div><dt>Canada</dt><dd id="hero-CA">—</dd></div>
+        <div><dt>British Columbia</dt><dd id="hero-BC">—</dd></div>
+        <div><dt>Nova Scotia</dt><dd id="hero-NS">—</dd></div>
+      </dl>
+      <p id="snapshot">Loading the Statistics Canada snapshot…</p>
+    </aside>
+  </div>
+</header>
+<main class="wrap">
+  <noscript>Enable JavaScript to explore the data, or open the official Statistics Canada table below.</noscript>
+  <section aria-labelledby="explore">
+    <div class="head"><h2 id="explore">Explore prices</h2><button type="button" id="export" disabled>Download CSV ↓</button></div>
+    <p id="status" role="status">Loading monthly averages…</p>
+    <button type="button" id="retry" hidden>Retry loading</button>
+    <div id="controls" hidden>
+      <div class="controls">
+        <label>Find a product<input id="search" type="search" placeholder="Coffee, eggs, milk…"></label>
+        <label>Product<select id="product"></select></label>
+        <label>Units<select id="unit"><option value="package">Published package</option><option value="standard">Per kg or L</option><option value="index">Indexed to 100</option></select></label>
+        <label>From<input id="from" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
+        <label>Through<input id="through" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
+      </div>
+      <div class="toolbar">
+        <fieldset><legend>Areas</legend>
+          <label><input type="checkbox" name="area" value="CA" checked> Canada</label>
+          <label><input type="checkbox" name="area" value="BC" checked> British Columbia</label>
+          <label><input type="checkbox" name="area" value="NS" checked> Nova Scotia</label>
+        </fieldset>
+        <div class="quick" aria-label="Quick date ranges">
+          <button type="button" data-months="12">1 year</button>
+          <button type="button" data-months="36">3 years</button>
+          <button type="button" data-months="60">5 years</button>
+          <button type="button" data-months="0">All dates</button>
+        </div>
+      </div>
+    </div>
+    <article class="frame" id="plot" hidden>
+      <div class="head"><h3 id="chart-title">Monthly averages</h3><a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810024501">Statistics Canada table ↗</a></div>
+      <p id="chart-description" class="support"></p>
+      <dl class="changes" id="changes" aria-label="Price change within the selected dates"></dl>
+      <canvas id="chart" class="chart" aria-hidden="true"></canvas>
+      <ul id="legend" class="legend" aria-label="Areas in display order"></ul>
+      <div class="inspector">
+        <label for="inspect">Inspect a month</label>
+        <input type="range" id="inspect" min="0" max="0" value="0">
+        <output id="selection" for="inspect"></output>
+      </div>
+      <details><summary>View monthly prices in a table</summary>
+        <div class="table-scroll">
+          <table aria-label="Prices for the selected product and dates"><thead><tr id="table-head"></tr></thead><tbody id="table-body"></tbody></table>
+        </div>
+        <div class="page-controls"><button id="newer" type="button">Newer</button><span id="page"></span><button id="older" type="button">Older</button></div>
+      </details>
+    </article>
+  </section>
+  <section id="sources" class="section" aria-labelledby="sources-heading">
+    <h2 id="sources-heading">Data &amp; methodology</h2>
+    <p>These are monthly averages from Statistics Canada’s selected-products table, based on retail transactions. Product descriptions specify package sizes or price units. The series are published in Canadian dollars and don’t represent quotes from a particular retailer.</p>
+    <p>Per kg or per litre divides the average by the published pack size, where it specifies a weight or volume. An index of 100 represents the first shared observed month in the selected area and date filters. A dash means the source lacked an observation. Price changes use months with published observations in all selected areas.</p>
+    <ul class="source-list">
+      <li><a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810024501">Table 18-10-0245-01, Monthly average retail prices for selected products</a></li>
+      <li><a href="https://www.statcan.gc.ca/en/terms-conditions/open-licence">Statistics Canada Open Licence</a></li>
+    </ul>
+    <p class="support">Adapted from Statistics Canada, Table 18-10-0245-01, <span id="reference-month">monthly observations</span>. This does not constitute an endorsement by Statistics Canada of this product.</p>
+  </section>
+</main>
+<footer class="dark"><div class="wrap"><span>Canadian Price Atlas</span><a href="https://github.com/jsdyer/priceatlas">Source on GitHub ↗</a></div></footer>
+</body>
+</html>
