@@ -38,7 +38,7 @@
     <div id="controls" hidden>
       <div class="controls">
         <label>Find a product<input id="search" type="search" placeholder="Coffee, eggs, milk…"></label>
-        <label>Product<select id="product"></select></label>
+        <div><label>Product<select id="product"></select></label><button type="button" id="basket-add">Add to basket</button></div>
         <label>Units<select id="unit"><option value="package">Published package</option><option value="standard">Per kg or L</option><option value="index">Indexed to 100</option></select></label>
         <label>From<input id="from" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
         <label>Through<input id="through" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
@@ -75,6 +75,14 @@
         <div class="page-controls"><button id="newer" type="button">Newer</button><span id="page"></span><button id="older" type="button">Older</button></div>
       </details>
     </article>
+  </section>
+  <section class="section" id="basket" aria-labelledby="basket-heading" hidden>
+    <div class="head"><h2 id="basket-heading">Your comparison basket</h2><button type="button" id="basket-export" disabled>Download basket CSV ↓</button></div>
+    <p>Choose products above and add them to your basket. Compare published package prices for the selected areas and exact From and Through months. Quantities count published packages.</p>
+    <div id="basket-items"></div>
+    <p id="basket-status" role="status"></p>
+    <div class="table-scroll"><table aria-label="Basket totals"><thead><tr><th scope="col">Area</th><th scope="col">From</th><th scope="col">Through</th><th scope="col">Change</th></tr></thead><tbody id="basket-totals"></tbody></table></div>
+    <p class="support">A total appears only when every item has a published price in that area and month. Missing prices are listed above. These illustrative totals use monthly averages, not a store quote.</p>
   </section>
   <section id="sources" class="section" aria-labelledby="sources-heading">
     <h2 id="sources-heading">Data &amp; methodology</h2>

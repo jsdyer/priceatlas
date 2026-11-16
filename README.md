@@ -2,6 +2,8 @@
 
 [Open the Canadian Price Atlas](https://coolcode.ca/priceatlas/) to explore published monthly prices for selected goods in British Columbia, Nova Scotia and Canada. Search product descriptions, choose the areas and range, chart published package prices, use per-kilogram or per-litre conversions where the source specifies a weight or volume, and index the series to a shared observation month. Dates and areas are shareable in the URL. Use the chart’s date slider or open the data table, and download the selected rows with Statistics Canada vector identifiers.
 
+Add products to a basket with package quantities to compare complete totals for selected areas and exact endpoint months. Missing prices are listed, and the basket CSV includes the underlying package observations and vectors. The basket lasts for the current page session.
+
 The chart and exports run against a static JSON snapshot. Price averages describe published products over a month and geographic area. The site labels missing observations, retains published package prices in exports and distinguishes the chart’s units from source units. A package comparison uses the product’s published unit or size, and range comparisons use the first and last month with data in every selected area.
 
 ## Build

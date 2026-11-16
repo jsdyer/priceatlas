@@ -1,3 +1,4 @@
+import { basketTotal } from './basket.mjs';
 import { createChart, createTable, csvDownload, element, get, setOptions, subtractMonths } from './series.mjs';
 
 const fields = Object.fromEntries(['search', 'product', 'unit', 'from', 'through'].map(id => [id, get(id)]));
@@ -12,6 +13,8 @@ const geographyCodes = areaBoxes.map(box => box.value);
 const allowedUnits = ['package', 'standard', 'index'];
 let data;
 let exportData;
+const basket = new Map();
+let basketExport = [];
 
 function showStatus(message, isError = false) {
   const status = get('status');
@@ -72,6 +75,7 @@ function render() {
   const indexes = data.months.map((_, n) => n).filter(n => data.months[n] >= min && data.months[n] <= max);
   const covered = product && indexes.some(index => areas.some(code => Number.isFinite(product.regions[code][index])));
   updateRangeButtons();
+  renderBasket();
   if (product) renderOverview(product);
   fields.unit.querySelector('[value="standard"]').disabled = !product?.unit;
   if (fields.unit.value === 'standard' && !product?.unit) fields.unit.value = 'package';
@@ -134,6 +138,82 @@ function render() {
   };
   history.replaceState(null, '', '?' + new URLSearchParams({ product: product.id, areas: areas.join(','), unit, from: min, through: max }));
 }
+
+
+function renderBasket() {
+  const section = get('basket');
+  section.hidden = basket.size === 0;
+  if (!basket.size) return;
+  const products = data.products.filter(product => basket.has(product.id));
+  get('basket-items').replaceChildren(...products.map(product => {
+    const row = element('div');
+    row.className = 'basket-item';
+    const name = element('span', product.name);
+    const label = element('label', 'Packages');
+    const quantity = element('input');
+    quantity.type = 'number';
+    quantity.min = '1';
+    quantity.max = '99';
+    quantity.step = '1';
+    quantity.value = String(basket.get(product.id));
+    quantity.setAttribute('aria-label', 'Packages of ' + product.name);
+    quantity.addEventListener('change', () => {
+      const value = Number(quantity.value);
+      basket.set(product.id, Number.isInteger(value) && value >= 1 && value <= 99 ? value : 1);
+      renderBasket();
+    });
+    label.append(quantity);
+    const remove = element('button', 'Remove');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', 'Remove ' + product.name);
+    remove.addEventListener('click', () => { basket.delete(product.id); renderBasket(); });
+    row.append(name, label, remove);
+    return row;
+  }));
+  const areas = areaBoxes.filter(box => box.checked).map(box => box.value);
+  const dates = [fields.from.value, fields.through.value];
+  const indexes = dates.map(date => data.months.indexOf(date));
+  const valid = areas.length && indexes.every(index => index >= 0) && dates[0] <= dates[1];
+  get('basket-export').disabled = !valid;
+  if (!valid) {
+    get('basket-status').textContent = 'Select an area and valid From and Through months within the data range.';
+    get('basket-totals').replaceChildren();
+    basketExport = [];
+    return;
+  }
+  const missing = [];
+  basketExport = [];
+  const rows = areas.map(area => {
+    const results = indexes.map((index, n) => {
+      const result = basketTotal(products, basket, area, index);
+      if (result.missing.length) missing.push(data.groups[area] + ' · ' + dates[n] + ': ' + result.missing.join(', '));
+      for (const product of products) {
+        basketExport.push([dates[n], data.groups[area], product.name, basket.get(product.id),
+          product.regions[area]?.[index] ?? null, product.vectors[area]]);
+      }
+      return result.total;
+    });
+    const [first, last] = results;
+    const change = Number.isFinite(first) && first > 0 && Number.isFinite(last) ? (last / first - 1) * 100 : null;
+    const tr = element('tr');
+    const th = element('th', data.groups[area]);
+    th.scope = 'row';
+    tr.append(th, ...[first, last].map(value => element('td', Number.isFinite(value) ? fmt(value) : '—')),
+      element('td', Number.isFinite(change) ? (change > 0 ? '+' : '') + change.toFixed(1) + '%' : '—'));
+    return tr;
+  });
+  get('basket-totals').replaceChildren(...rows);
+  get('basket-status').textContent = missing.length ? 'Missing observations — ' + missing.join(' | ') : 'All selected items have prices for both months.';
+}
+get('basket-add').addEventListener('click', () => {
+  const id = fields.product.value;
+  if (!data?.products.some(product => product.id === id)) return;
+  basket.set(id, basket.get(id) ?? 1);
+  renderBasket();
+  get('basket-heading').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+get('basket-export').addEventListener('click', () => csvDownload('price-atlas-basket.csv',
+  ['month', 'area', 'product', 'packages', 'published package price (CAD)', 'StatCan vector'], basketExport));
 
 fields.search.addEventListener('input', () => { setupProducts(fields.product.value); render(); });
 [fields.product, fields.unit, fields.from, fields.through, ...areaBoxes].forEach(field => field.addEventListener('change', render));
