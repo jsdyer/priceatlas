@@ -1,0 +1,26 @@
+{
+  "id": "priceatlas",
+  "title": "Canadian Price Atlas",
+  "description": "Compare historical grocery prices across Canadian regions.",
+  "category": "money",
+  "tags": [
+    "statcan",
+    "bc",
+    "ns",
+    "food",
+    "grocery",
+    "inflation",
+    "retail",
+    "prices"
+  ],
+  "icon": "shopping-basket",
+  "url": "/priceatlas/",
+  "source": "https://github.com/jsdyer/priceatlas",
+  "hosting": "project",
+  "access": "browser",
+  "data_info": {
+    "mode": "snapshot",
+    "detail": "Statistics Canada publishes monthly retail prices for Canada, BC and Nova Scotia.",
+    "cadence": "Weekly"
+  }
+}
