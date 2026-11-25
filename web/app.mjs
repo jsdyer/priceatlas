@@ -1,15 +1,16 @@
+import { observationRange, sharedIndexes } from './coverage.mjs';
 import { basketTotal } from './basket.mjs';
 import { createChart, createTable, csvDownload, element, get, setOptions, subtractMonths } from './series.mjs';
 
 const fields = Object.fromEntries(['search', 'product', 'unit', 'from', 'through'].map(id => [id, get(id)]));
-const areaBoxes = [...document.querySelectorAll('[name="area"]')];
+let areaBoxes = [];
 const days = [...document.querySelectorAll('[data-months]')];
 const chart = createChart();
 const table = createTable();
 const currency = new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' });
 const fmt = value => currency.format(value);
 const validMonth = value => /^\d{4}-(0[1-9]|1[0-2])$/.test(value ?? '');
-const geographyCodes = areaBoxes.map(box => box.value);
+let geographyCodes = [];
 const allowedUnits = ['package', 'standard', 'index'];
 let data;
 let exportData;
@@ -23,19 +24,49 @@ function showStatus(message, isError = false) {
   status.classList.toggle('error', isError);
 }
 
-function latestCommon(product, areas) {
-  return data.months.findLastIndex((_, index) => areas.every(code => Number.isFinite(product.regions[code][index])));
+function setupAreas(requested) {
+  geographyCodes = Object.keys(data.groups);
+  const checked = requested?.length ? requested : ['CA', 'BC', 'NS'];
+  get('areas').replaceChildren(...geographyCodes.map(code => {
+    const label = element('label');
+    const box = element('input');
+    box.type = 'checkbox';
+    box.name = 'area';
+    box.value = code;
+    box.disabled = data.coverage[code].status !== 'published';
+    box.checked = !box.disabled && checked.includes(code);
+    box.addEventListener('change', render);
+    label.append(box, element('span', data.groups[code] + (box.disabled ? ' · not published' : '')));
+    return label;
+  }));
+  areaBoxes = [...get('areas').querySelectorAll('input')];
+  get('area-coverage').replaceChildren(...geographyCodes.map(code => {
+    const area = data.coverage[code];
+    const row = element('tr');
+    const name = element('th', data.groups[code]);
+    name.scope = 'row';
+    row.append(name, element('td', area.first ? area.first + ' to ' + area.last : 'No comparable monthly series'),
+      element('td', String(area.products)), element('td', area.scope === 'city' ? 'City only; not the entire territory' : area.status === 'published' ? 'Published area average' : code === 'NU' ? 'Separate Nunavut food-price survey linked below' : 'Not published in this source edition'));
+    return row;
+  }));
 }
 
-function renderOverview(product) {
-  const latest = latestCommon(product, geographyCodes);
+function renderOverview(product, areas) {
+  const latest = data.months.length - 1;
   get('overview-product').textContent = product.name;
-  geographyCodes.forEach(code => {
+  get('overview-values').replaceChildren(...areas.map(code => {
+    const panel = element('div');
     const value = product.regions[code][latest];
-    get('hero-' + code).textContent = Number.isFinite(value) ? fmt(value) : '—';
-  });
-  const lastDate = latest >= 0 ? 'Published month ' + data.months[latest] + ' · ' : '';
-  get('snapshot').textContent = lastDate + 'Built ' + data.built.slice(0, 10) + ' UTC';
+    panel.append(element('dt', data.groups[code]), element('dd', Number.isFinite(value) ? fmt(value) : 'Not published'));
+    return panel;
+  }));
+  get('snapshot').textContent = 'Published month ' + data.months[latest] + ' · Built ' + data.built.slice(0, 10) + ' UTC';
+  get('product-coverage').replaceChildren(...areas.map(code => {
+    const range = observationRange(product, code, data.months);
+    return element('li', data.groups[code] + ': ' + (range.count
+      ? range.first + ' to ' + range.last + ' (' + range.count + ' observed months)'
+      : 'This product is not published for this area.'));
+  }));
 }
 
 function normalizeSearch(text) {
@@ -76,7 +107,8 @@ function render() {
   const covered = product && indexes.some(index => areas.some(code => Number.isFinite(product.regions[code][index])));
   updateRangeButtons();
   renderBasket();
-  if (product) renderOverview(product);
+  if (product) renderOverview(product, areas);
+  else { get('overview-values').replaceChildren(); get('product-coverage').replaceChildren(); }
   fields.unit.querySelector('[value="standard"]').disabled = !product?.unit;
   if (fields.unit.value === 'standard' && !product?.unit) fields.unit.value = 'package';
   if (!product || !areas.length || badRange || !covered) {
@@ -87,7 +119,7 @@ function render() {
     return;
   }
   const unit = fields.unit.value;
-  const shared = indexes.filter(index => areas.every(code => Number.isFinite(product.regions[code][index])));
+  const shared = sharedIndexes(product, areas, indexes);
   if (unit === 'index' && !shared.length) {
     get('plot').hidden = true;
     get('export').disabled = true;
@@ -96,7 +128,8 @@ function render() {
   }
   get('plot').hidden = false;
   get('export').disabled = false;
-  showStatus('');
+  const absent = areas.filter(code => !indexes.some(index => Number.isFinite(product.regions[code][index])));
+  showStatus(absent.length ? 'No published prices in this selection for ' + absent.map(code => data.groups[code]).join(', ') + '. Their rows remain missing in the table and CSV.' : '');
   const dates = indexes.map(index => data.months[index]);
   const format = unit === 'index' ? value => value.toFixed(1) : fmt;
   const tracks = areas.map(code => {
@@ -216,8 +249,10 @@ get('basket-export').addEventListener('click', () => csvDownload('price-atlas-ba
   ['month', 'area', 'product', 'packages', 'published package price (CAD)', 'StatCan vector'], basketExport));
 
 fields.search.addEventListener('input', () => { setupProducts(fields.product.value); render(); });
-[fields.product, fields.unit, fields.from, fields.through, ...areaBoxes].forEach(field => field.addEventListener('change', render));
+[fields.product, fields.unit, fields.from, fields.through].forEach(field => field.addEventListener('change', render));
 days.forEach(button => button.addEventListener('click', () => { range(Number(button.dataset.months)); render(); }));
+get('areas-all').addEventListener('click', () => { areaBoxes.forEach(box => { box.checked = !box.disabled; }); render(); });
+get('areas-clear').addEventListener('click', () => { areaBoxes.forEach(box => { box.checked = false; }); render(); });
 get('export').addEventListener('click', () => csvDownload('canadian-price-atlas.csv', exportData.headings, exportData.rows));
 
 async function load() {
@@ -227,14 +262,13 @@ async function load() {
     const response = await fetch('./snapshot.json');
     if (!response.ok) throw new Error('Snapshot HTTP ' + response.status);
     data = await response.json();
-    if (!data.months?.length || !data.products?.length || !data.groups) throw new Error('Invalid snapshot');
+    if (!data.months?.length || !data.products?.length || !data.groups || !data.coverage) throw new Error('Invalid snapshot');
     get('reference-month').textContent = data.months[0] + ' to ' + data.months.at(-1);
     const query = new URLSearchParams(location.search);
+    setupAreas(query.get('areas')?.split(',').filter(code => code in data.groups));
     setupProducts(query.get('product') ?? data.products.find(row => row.name === 'Eggs, 1 dozen')?.id);
     const unit = query.get('unit');
     if (allowedUnits.includes(unit)) fields.unit.value = unit;
-    const areas = query.get('areas')?.split(',').filter(code => geographyCodes.includes(code));
-    if (areas?.length) areaBoxes.forEach(box => { box.checked = areas.includes(box.value); });
     for (const key of ['from', 'through']) {
       fields[key].min = data.months[0];
       fields[key].max = data.months.at(-1);

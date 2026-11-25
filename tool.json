@@ -1,12 +1,13 @@
 {
   "id": "priceatlas",
   "title": "Canadian Price Atlas",
-  "description": "Compare historical grocery prices across Canadian regions.",
+  "description": "Compare grocery price histories across Canada, all provinces and available northern cities.",
   "category": "money",
   "tags": [
     "statcan",
-    "bc",
-    "ns",
+    "canada",
+    "provinces",
+    "territories",
     "food",
     "grocery",
     "inflation",
@@ -20,7 +21,7 @@
   "access": "browser",
   "data_info": {
     "mode": "snapshot",
-    "detail": "Statistics Canada publishes monthly retail prices for Canada, BC and Nova Scotia.",
+    "detail": "Statistics Canada monthly retail prices for Canada, all 10 provinces, Whitehorse and Yellowknife. City-only northern coverage; Nunavut is explicitly unavailable with its separate survey linked.",
     "cadence": "Weekly"
   }
 }

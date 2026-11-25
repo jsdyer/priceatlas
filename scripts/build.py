@@ -4,6 +4,7 @@ from collections import defaultdict
 import csv
 from datetime import date, datetime, timezone
 import io
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -18,7 +19,26 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = "https://www150.statcan.gc.ca/n1/tbl/csv/18100245-eng.zip"
 TABLE = "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810024501"
-GEOGRAPHIES = {"Canada": "CA", "British Columbia": "BC", "Nova Scotia": "NS"}
+# Geography labels remain faithful to the published coverage: the two northern
+# series are cities, never territory-wide averages. NU is visible but unpublished.
+AREAS = {
+    "CA": ("Canada", "Canada", "national"),
+    "NL": ("Newfoundland and Labrador", "Newfoundland and Labrador", "province"),
+    "PE": ("Prince Edward Island", "Prince Edward Island", "province"),
+    "NS": ("Nova Scotia", "Nova Scotia", "province"),
+    "NB": ("New Brunswick", "New Brunswick", "province"),
+    "QC": ("Quebec", "Quebec", "province"),
+    "ON": ("Ontario", "Ontario", "province"),
+    "MB": ("Manitoba", "Manitoba", "province"),
+    "SK": ("Saskatchewan", "Saskatchewan", "province"),
+    "AB": ("Alberta", "Alberta", "province"),
+    "BC": ("British Columbia", "British Columbia", "province"),
+    "YT": ("Yukon — Whitehorse only", "Whitehorse, Yukon", "city"),
+    "NT": ("Northwest Territories — Yellowknife only", "Yellowknife, Northwest Territories", "city"),
+    "NU": ("Nunavut", None, "unavailable"),
+}
+GEOGRAPHIES = {source: code for code, (_, source, _) in AREAS.items() if source}
+NUNAVUT_SOURCE = "https://www.gov.nu.ca/en/nunavummit-kiglisiniartiit-nunavut-bureau-statistics/prices-and-cost-living-statistics"
 LIMIT = 15 * 1024 * 1024
 SIZE = re.compile(r", (?:(per)|(\d+(?:\.\d+)?))\s*(kilograms?|grams?|litres?|millilitres?)$", re.I)
 CONVERSIONS = {
@@ -64,7 +84,7 @@ def month_range(first, last):
         year, month = (year + 1, 1) if month == 12 else (year, month + 1)
 
 
-def normalize(table):
+def normalize(table, historical=False):
     fields = {"REF_DATE", "GEO", "Products", "UOM", "SCALAR_FACTOR", "VECTOR", "VALUE", "STATUS"}
     if not fields.issubset(table.fieldnames or []):
         raise ValueError("Statistics Canada CSV headers changed.")
@@ -75,7 +95,7 @@ def normalize(table):
     for row in table:
         geography = GEOGRAPHIES.get(row["GEO"])
         if not geography:
-            continue
+            raise ValueError(f"Unreviewed source geography: {row['GEO']!r}.")
         month = row["REF_DATE"]
         parsed = date.fromisoformat(month + "-01")
         if parsed.isoformat()[:7] != month or not 2010 <= parsed.year <= datetime.now(timezone.utc).year:
@@ -100,14 +120,26 @@ def normalize(table):
         dates.add(month)
         if amount is not None:
             groups.add(geography)
-    if groups != set(GEOGRAPHIES.values()) or len(dates) < 36 or len(values) < 50:
-        raise ValueError("Snapshot is smaller than expected.")
+    expected = {"CA", "BC", "NS"} if historical else set(GEOGRAPHIES.values())
+    if not expected.issubset(groups) or len(dates) < 36 or len(values) < 50:
+        raise ValueError("Snapshot is smaller than expected or is missing required published areas.")
     axis = month_range(min(dates), max(dates))
     return {
         "source": TABLE,
         "built": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "months": axis,
-        "groups": {code: name for name, code in GEOGRAPHIES.items()},
+        "groups": {code: label for code, (label, _, _) in AREAS.items()},
+        "coverage": {
+            code: {
+                "scope": scope, "source_name": source,
+                "status": "published" if code in groups else "unavailable",
+                "first": min((month for regions in values.values() for month, value in regions.get(code, {}).items() if value is not None), default=None),
+                "last": max((month for regions in values.values() for month, value in regions.get(code, {}).items() if value is not None), default=None),
+                "products": sum(any(value is not None for value in regions.get(code, {}).values()) for regions in values.values()),
+                "source": NUNAVUT_SOURCE if code == "NU" else TABLE,
+            }
+            for code, (_, source, scope) in AREAS.items()
+        },
         "products": [
             {
                 "id": vectors[name].get("CA", next(iter(vectors[name].values()))),
@@ -115,7 +147,7 @@ def normalize(table):
                 "unit": unit_size(name),
                 "vectors": vectors[name],
                 "regions": {
-                    code: [values[name][code].get(month) for month in axis] for code in GEOGRAPHIES.values()
+                    code: [values[name][code].get(month) for month in axis] for code in AREAS
                 },
             }
             for name in sorted(values, key=str.casefold)
@@ -124,27 +156,54 @@ def normalize(table):
     }
 
 
+def version_assets(stage):
+    """Give the whole local asset graph one deterministic cache version."""
+    digest = hashlib.sha256()
+    for path in sorted(stage.rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(stage).as_posix().encode())
+            digest.update(b"\0")
+            digest.update(path.read_bytes())
+    version = digest.hexdigest()[:16]
+
+    def local_reference(match):
+        quote, relative = match.group(1), match.group(2)
+        target = stage / relative.removeprefix("./")
+        if target.is_file() and target.suffix in {".mjs", ".css", ".json"}:
+            return f"{quote}{relative}?v={version}{quote}"
+        return match.group(0)
+
+    # Version imports and config fetches together, so an updated app never imports
+    # a still-fresh cached module from the previous release.
+    references = re.compile(r"([\"'])(\./[^\"'?]+)\1")
+    for path in [stage / "index.html", *stage.glob("*.mjs")]:
+        path.write_text(references.sub(local_reference, path.read_text(encoding="utf-8")), encoding="utf-8")
+    return version
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, help="Use a saved StatCan source ZIP or uncompressed table CSV.")
     args = parser.parse_args()
     if args.input and args.input.suffix.lower() == ".csv":
         with args.input.open(encoding="utf-8-sig", newline="") as source:
-            snapshot = normalize(csv.DictReader(source))
+            snapshot = normalize(csv.DictReader(source), historical=bool(args.input))
     else:
         payload = args.input.read_bytes() if args.input else fetch()
         with ZipFile(io.BytesIO(payload)) as archive:
             with io.TextIOWrapper(archive.open("18100245.csv"), encoding="utf-8-sig", newline="") as source:
-                snapshot = normalize(csv.DictReader(source))
+                snapshot = normalize(csv.DictReader(source), historical=bool(args.input))
     root = ROOT / "dist"
     with TemporaryDirectory(dir=ROOT) as temporary:
         staging = Path(temporary) / "dist"
         shutil.copytree(ROOT / "web", staging)
         (staging / "snapshot.json").write_text(json.dumps(snapshot, separators=(",", ":")), encoding="utf-8")
+        version_assets(staging)
+        (staging / ".nojekyll").touch()
         if root.exists():
             shutil.rmtree(root)
         staging.replace(root)
-    print(f"Prepared {len(snapshot['months'])} months for {len(snapshot['products'])} products and {len(snapshot['groups'])} areas.")
+    print(f"Prepared {len(snapshot['months'])} months for {len(snapshot['products'])} products and {sum(row['status'] == 'published' for row in snapshot['coverage'].values())} published areas (all 13 provinces/territories accounted for).")
 
 
 if __name__ == "__main__":

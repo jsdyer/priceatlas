@@ -1,5 +1,5 @@
 const DAY = 86400000;
-const PALETTE = ['#306444', '#a04926', '#41607a'];
+const PALETTE = ['#306444', '#a04926', '#41607a', '#80599c', '#946b06', '#287d88', '#9a426a', '#5e6c23', '#3f589a', '#9a4e3e', '#576d62', '#765035', '#3d7084'];
 const DASHES = [[], [8, 4], [2, 4]];
 const shortDate = new Intl.DateTimeFormat('en-CA', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
@@ -138,10 +138,10 @@ export function createChart() {
       ctx.fillText(shortDate.format(timestamps[ix]), position(ix), h - 10);
     }
     tracks.forEach((track, i) => {
-      ctx.strokeStyle = PALETTE[i];
-      ctx.fillStyle = PALETTE[i];
+      ctx.strokeStyle = PALETTE[i % PALETTE.length];
+      ctx.fillStyle = PALETTE[i % PALETTE.length];
       ctx.lineWidth = 2;
-      ctx.setLineDash(DASHES[i]);
+      ctx.setLineDash(DASHES[i % DASHES.length]);
       ctx.beginPath();
       let previous = null;
       track.values.forEach((value, n) => {
@@ -178,7 +178,7 @@ export function createChart() {
     tracks.forEach((track, i) => {
       const value = track.values[index];
       if (!Number.isFinite(value)) return;
-      ctx.fillStyle = PALETTE[i];
+      ctx.fillStyle = PALETTE[i % PALETTE.length];
       ctx.beginPath();
       ctx.arc(marker, y(value), 4.5, 0, 2 * Math.PI);
       ctx.fill();
@@ -212,7 +212,11 @@ export function createChart() {
   new ResizeObserver(draw).observe(canvas);
   return data => {
     model = data;
-    legend.replaceChildren(...model.tracks.map(track => element('li', track.label)));
+    legend.replaceChildren(...model.tracks.map((track, i) => {
+      const row = element('li', track.label);
+      row.className = 'series-' + i;
+      return row;
+    }));
     slider.max = String(model.dates.length - 1);
     select(model.dates.length - 1);
   };

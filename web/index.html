@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17211c">
-  <meta name="description" content="Compare Canadian grocery price histories for British Columbia, Nova Scotia and Canada.">
+  <meta name="description" content="Compare grocery prices across all Canadian provinces, Whitehorse and Yellowknife, with clear territorial coverage and missing-data notes.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Canadian Price Atlas · CoolCode.ca</title>
   <link rel="stylesheet" href="./style.css">
@@ -18,14 +18,10 @@
     <a href="#sources">Data &amp; methodology</a>
   </nav>
   <div class="wrap hero">
-    <div><h1>Canadian<br>Price Atlas<span>.</span></h1><p>Compare grocery price histories across British Columbia, Nova Scotia, and Canada.</p></div>
+    <div><h1>Canadian<br>Price Atlas<span>.</span></h1><p>Compare grocery price histories across Canada and all ten provinces, with available northern city prices and clear coverage for every territory.</p></div>
     <aside class="overview">
       <h2 id="overview-product">Latest published observation</h2>
-      <dl>
-        <div><dt>Canada</dt><dd id="hero-CA">—</dd></div>
-        <div><dt>British Columbia</dt><dd id="hero-BC">—</dd></div>
-        <div><dt>Nova Scotia</dt><dd id="hero-NS">—</dd></div>
-      </dl>
+      <dl id="overview-values"></dl>
       <p id="snapshot">Loading the Statistics Canada snapshot…</p>
     </aside>
   </div>
@@ -45,10 +41,9 @@
         <label>Through<input id="through" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
       </div>
       <div class="toolbar">
-        <fieldset><legend>Areas</legend>
-          <label><input type="checkbox" name="area" value="CA" checked> Canada</label>
-          <label><input type="checkbox" name="area" value="BC" checked> British Columbia</label>
-          <label><input type="checkbox" name="area" value="NS" checked> Nova Scotia</label>
+        <fieldset class="areas-fieldset"><legend>Provinces &amp; territories</legend>
+          <div class="area-actions"><button type="button" id="areas-all">All published areas</button><button type="button" id="areas-clear">Clear areas</button></div>
+          <div id="areas"></div>
         </fieldset>
         <div class="quick" aria-label="Quick date ranges">
           <button type="button" data-months="12">1 year</button>
@@ -57,6 +52,11 @@
           <button type="button" data-months="0">All dates</button>
         </div>
       </div>
+      <p class="coverage-note">Northern coverage: Yukon uses <strong>Whitehorse only</strong>; Northwest Territories uses <strong>Yellowknife only</strong>. Their available dates and product counts are shown below; coverage is smaller there. Nunavut is not in this monthly table; <a href="#northern-coverage">see its separate survey</a>.</p>
+      <details class="coverage-details"><summary>Published dates and products by area</summary>
+        <div class="table-scroll"><table><thead><tr><th scope="col">Area</th><th scope="col">Published dates</th><th scope="col">Products</th><th scope="col">Coverage</th></tr></thead><tbody id="area-coverage"></tbody></table></div>
+      </details>
+      <details class="coverage-details"><summary>Coverage for the selected product</summary><ul id="product-coverage"></ul></details>
     </div>
     <article class="frame" id="plot" hidden>
       <div class="head"><h3 id="chart-title">Monthly averages</h3><a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810024501">Statistics Canada table ↗</a></div>
@@ -89,6 +89,7 @@
     <h2 id="sources-heading">Data &amp; methodology</h2>
     <p>These are monthly averages from Statistics Canada’s selected-products table, based on retail transactions. Product descriptions specify package sizes or price units. The series are published in Canadian dollars and don’t represent quotes from a particular retailer.</p>
     <p>Per kg or per litre divides the average by the published pack size, where it specifies a weight or volume. An index of 100 represents the first shared observed month in the selected area and date filters. A dash means the source lacked an observation. Price changes use months with published observations in all selected areas.</p>
+    <p id="northern-coverage">The northern series cover Whitehorse and Yellowknife, not whole territories. Not every product is available there, and earlier months remain missing. Nunavut has no series in this Statistics Canada table. Its separate <a href="https://www.gov.nu.ca/en/nunavummit-kiglisiniartiit-nunavut-bureau-statistics/prices-and-cost-living-statistics">Nunavut Food Price Survey</a> uses its own collection dates, product definitions and community coverage, so those prices are not spliced into these monthly comparisons. The chart’s optional price index is calculated from the selected product; it is not the Consumer Price Index.</p>
     <ul class="source-list">
       <li><a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810024501">Table 18-10-0245-01, Monthly average retail prices for selected products</a></li>
       <li><a href="https://www.statcan.gc.ca/en/terms-conditions/open-licence">Statistics Canada Open Licence</a></li>
