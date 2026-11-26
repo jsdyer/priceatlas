@@ -38,7 +38,7 @@ def main():
                 page.locator('#plot').wait_for(state='visible')
                 assert page.locator('h1').inner_text() == 'Compare Canadian grocery prices'
                 assert page.locator('#overview-product').inner_text() == 'Eggs, 1 dozen'
-                assert page.locator('#overview-values dt').all_text_contents() == ['Canada', 'British Columbia', 'Nova Scotia']
+                assert page.locator('#overview-values dt').all_text_contents() == [snapshot['groups'][code] for code in snapshot['groups'] if code in {'CA', 'BC', 'NS'}]
                 page.goto(f'http://127.0.0.1:{server.server_port}/priceatlas/?product={common["id"]}&areas=CA,ON,AB,YT,NT')
                 page.locator('#controls').wait_for(state='visible')
                 assert page.locator('[name=area]').count() == 14

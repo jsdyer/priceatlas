@@ -186,7 +186,9 @@ def write_default_overview(stage, snapshot):
     """Put the existing initial comparison in the first HTML response as well."""
     product = next((row for row in snapshot["products"] if row["name"] == "Eggs, 1 dozen"), snapshot["products"][0])
     items = []
-    for code in ("CA", "BC", "NS"):
+    for code in snapshot["groups"]:
+        if code not in {"CA", "BC", "NS"}:
+            continue
         value = product["regions"][code][-1]
         price = "Not published" if value is None else f"${value:.2f}"
         items.append(f"<div><dt>{escape(snapshot['groups'][code])}</dt><dd>{price}</dd></div>")
