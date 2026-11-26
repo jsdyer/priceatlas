@@ -123,3 +123,7 @@ noscript { display: block; margin-bottom: 1rem; }
 #product-coverage { font-size: .85rem; padding-left: 1.2rem; }
 #overview-values { max-height: 18rem; overflow-y: auto; }
 .overview dd { font-size: .83rem; }
+
+.hero .start-links { margin-top:1rem; font-weight:650; }
+.hero .start-links a { color:var(--signal); }
+.hero h1 { font-size:clamp(2.5rem,6vw,5rem); }

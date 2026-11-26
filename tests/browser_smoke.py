@@ -34,6 +34,11 @@ def main():
                 errors = []
                 page.on('pageerror', lambda e: errors.append(str(e)))
                 page.route('**/assets/tool-metrics.js', lambda route: route.fulfill(body=''))
+                page.goto(f'http://127.0.0.1:{server.server_port}/priceatlas/')
+                page.locator('#plot').wait_for(state='visible')
+                assert page.locator('h1').inner_text() == 'Compare Canadian grocery prices'
+                assert page.locator('#overview-product').inner_text() == 'Eggs, 1 dozen'
+                assert page.locator('#overview-values dt').all_text_contents() == ['Canada', 'British Columbia', 'Nova Scotia']
                 page.goto(f'http://127.0.0.1:{server.server_port}/priceatlas/?product={common["id"]}&areas=CA,ON,AB,YT,NT')
                 page.locator('#controls').wait_for(state='visible')
                 assert page.locator('[name=area]').count() == 14

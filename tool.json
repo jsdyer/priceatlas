@@ -1,7 +1,7 @@
 {
   "id": "priceatlas",
-  "title": "Canadian Price Atlas",
-  "description": "Compare grocery price histories across Canada, all provinces and available northern cities.",
+  "title": "Canadian Grocery Price Comparison",
+  "description": "Compare monthly grocery prices for Canada and all ten provinces, plus Whitehorse and Yellowknife where Statistics Canada publishes city observations.",
   "category": "money",
   "tags": [
     "statcan",
@@ -12,7 +12,8 @@
     "grocery",
     "inflation",
     "retail",
-    "prices"
+    "prices",
+    "Canadian Price Atlas"
   ],
   "icon": "shopping-basket",
   "url": "/priceatlas/",

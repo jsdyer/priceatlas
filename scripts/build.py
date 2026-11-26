@@ -1,4 +1,5 @@
 """Create a static regional price snapshot from Statistics Canada table 18-10-0245-01."""
+from html import escape
 import argparse
 from collections import defaultdict
 import csv
@@ -181,6 +182,24 @@ def version_assets(stage):
     return version
 
 
+def write_default_overview(stage, snapshot):
+    """Put the existing initial comparison in the first HTML response as well."""
+    product = next((row for row in snapshot["products"] if row["name"] == "Eggs, 1 dozen"), snapshot["products"][0])
+    items = []
+    for code in ("CA", "BC", "NS"):
+        value = product["regions"][code][-1]
+        price = "Not published" if value is None else f"${value:.2f}"
+        items.append(f"<div><dt>{escape(snapshot['groups'][code])}</dt><dd>{price}</dd></div>")
+    page = stage / "index.html"
+    source = page.read_text(encoding="utf-8")
+    source = source.replace('id="overview-product">Latest published observation', 'id="overview-product">' + escape(product["name"]))
+    source = source.replace('<dl id="overview-values"></dl>', '<dl id="overview-values">' + "".join(items) + '</dl>')
+    source = source.replace('Loading the Statistics Canada snapshot…', 'Published month ' + escape(snapshot["months"][-1]) + ' · Statistics Canada')
+    if product["name"] != "Eggs, 1 dozen":
+        source = source.replace("the price of a dozen eggs", "the published price for " + escape(product["name"]))
+    page.write_text(source, encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, help="Use a saved StatCan source ZIP or uncompressed table CSV.")
@@ -198,6 +217,7 @@ def main():
         staging = Path(temporary) / "dist"
         shutil.copytree(ROOT / "web", staging)
         (staging / "snapshot.json").write_text(json.dumps(snapshot, separators=(",", ":")), encoding="utf-8")
+        write_default_overview(staging, snapshot)
         version_assets(staging)
         (staging / ".nojekyll").touch()
         if root.exists():

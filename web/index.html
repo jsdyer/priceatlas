@@ -4,12 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#17211c">
-  <meta name="description" content="Compare grocery prices across all Canadian provinces, Whitehorse and Yellowknife, with clear territorial coverage and missing-data notes.">
+  <meta name="description" content="Compare monthly grocery prices for Canada and all ten provinces, plus Whitehorse and Yellowknife where Statistics Canada publishes city observations.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>Canadian Price Atlas · CoolCode.ca</title>
+  <title>Canadian Grocery Price Comparison · CoolCode</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.mjs" type="module"></script>
 <script defer src="/assets/tool-metrics.js" referrerpolicy="no-referrer"></script>
+
+  <link rel="canonical" href="https://coolcode.ca/priceatlas/">
+  <meta property="og:url" content="https://coolcode.ca/priceatlas/">
+  <meta property="og:title" content="Canadian Grocery Price Comparison · CoolCode">
+  <meta property="og:description" content="Compare monthly grocery prices for Canada and all ten provinces, plus Whitehorse and Yellowknife where Statistics Canada publishes city observations.">
+  <meta property="og:type" content="website">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Canadian Grocery Price Comparison", "alternateName": "Canadian Price Atlas", "description": "Compare monthly grocery prices for Canada and all ten provinces, plus Whitehorse and Yellowknife where Statistics Canada publishes city observations.", "url": "https://coolcode.ca/priceatlas/", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "CAD"}}</script>
 </head>
 <body>
 <header class="dark">
@@ -18,7 +25,8 @@
     <a href="#sources">Data &amp; methodology</a>
   </nav>
   <div class="wrap hero">
-    <div><h1>Canadian<br>Price Atlas<span>.</span></h1><p>Compare grocery price histories across Canada and all ten provinces, with available northern city prices and clear coverage for every territory.</p></div>
+    <div><small>Canadian Price Atlas</small><h1>Compare Canadian grocery prices</h1><p>Start with the price of a dozen eggs in Canada, British Columbia and Nova Scotia. Choose another product or province to change the comparison.</p>
+      <p class="start-links"><a href="#explore">Choose a product</a> · <a href="#plot">View the price chart</a></p></div>
     <aside class="overview">
       <h2 id="overview-product">Latest published observation</h2>
       <dl id="overview-values"></dl>
@@ -41,7 +49,7 @@
         <label>Through<input id="through" type="month" inputmode="numeric" placeholder="YYYY-MM"></label>
       </div>
       <div class="toolbar">
-        <fieldset class="areas-fieldset"><legend>Provinces &amp; territories</legend>
+        <fieldset class="areas-fieldset"><legend>Canada, provinces &amp; northern cities</legend>
           <div class="area-actions"><button type="button" id="areas-all">All published areas</button><button type="button" id="areas-clear">Clear areas</button></div>
           <div id="areas"></div>
         </fieldset>
