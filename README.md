@@ -12,7 +12,7 @@ Add products to a basket with package quantities to compare complete totals for 
 
 The chart and exports run against a static JSON snapshot. Price averages describe published products over a month and geographic area. The site labels missing observations, retains published package prices in exports and distinguishes the chart’s units from source units. A package comparison uses the product’s published unit or size, and range comparisons use the first and last month with data in every selected area.
 
-The weekly build also produces permanent [grocery price guides](https://coolcode.ca/priceatlas/records/) for selected staples and areas with published values. Each guide identifies its package, reference month and source vector, converts the published amount to a practical shopping quantity, and links to the preselected chart. National pages compare one month across places. The latest available observation is explicitly dated when a local series lags.
+The weekly build also produces permanent [grocery price guides](https://coolcode.ca/priceatlas/records/) for selected staples and areas with published values. Each guide identifies its package, reference month and source vector, converts the published amount to a practical shopping quantity, and links to the preselected chart. National pages compare one month across places. The latest available observation is explicitly dated when a local series lags. Egg guides link to a [worked carton comparison](https://coolcode.ca/field-notes/comparing-egg-carton-prices/) that shows the break-even price for an 18-pack and the checkout cost for the quantity you need.
 
 ## Geographic coverage
 

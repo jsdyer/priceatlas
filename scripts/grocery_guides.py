@@ -67,7 +67,7 @@ def record_shell(title, description, path, content):
 
 
 def detail(snapshot, product, spec, code, paths):
-    _, _, label, quantity, ratio = spec
+    _, slug, label, quantity, ratio = spec
     series = product["regions"][code]
     latest = max(index for index, v in enumerate(series) if v is not None)
     key = snapshot["months"][latest]
@@ -93,6 +93,9 @@ def detail(snapshot, product, spec, code, paths):
                 f'<strong>{escape(quantity)} works out to {equivalent}</strong>. Compare a shelf or flyer price for the same quantity. '
                 'A different package size or brand can have a different unit price.</p>'
                 f'<p>{link("/priceatlas/?" + query, "Open this item in the price chart and basket")}</p></section>')
+
+    if slug == "eggs":
+        content += f'<p>{link("/field-notes/comparing-egg-carton-prices/", "When is an 18-pack cheaper than a dozen?")} Compare the prices on two shelf labels.</p>'
 
     if code == "CA":
         rows = []
