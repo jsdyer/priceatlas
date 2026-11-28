@@ -52,6 +52,15 @@ function setupAreas(requested) {
 }
 
 function renderOverview(product, areas) {
+  const guides = data.price_guides?.[product.id] ?? {};
+  const regional = areas.filter(code => code !== 'CA');
+  const code = regional.length === 1 && guides[regional[0]] ? regional[0] : 'CA';
+  const guide = get('price-guide');
+  guide.hidden = !guides[code];
+  if (guides[code]) {
+    guide.href = './' + guides[code];
+    guide.textContent = 'Read the shopping guide for ' + data.coverage[code].source_name;
+  }
   const latest = data.months.length - 1;
   get('overview-product').textContent = product.name;
   get('overview-values').replaceChildren(...areas.map(code => {
@@ -108,7 +117,7 @@ function render() {
   updateRangeButtons();
   renderBasket();
   if (product) renderOverview(product, areas);
-  else { get('overview-values').replaceChildren(); get('product-coverage').replaceChildren(); }
+  else { get('price-guide').hidden = true; get('overview-values').replaceChildren(); get('product-coverage').replaceChildren(); }
   fields.unit.querySelector('[value="standard"]').disabled = !product?.unit;
   if (fields.unit.value === 'standard' && !product?.unit) fields.unit.value = 'package';
   if (!product || !areas.length || badRange || !covered) {

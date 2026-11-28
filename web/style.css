@@ -127,3 +127,15 @@ noscript { display: block; margin-bottom: 1rem; }
 .hero .start-links { margin-top:1rem; font-weight:650; }
 .hero .start-links a { color:var(--signal); }
 .hero h1 { font-size:clamp(2.5rem,6vw,5rem); }
+
+.price-guide { max-width: 52rem; }
+.price-guide h1 { font-size: clamp(2.2rem, 6vw, 3.7rem); line-height: 1.04; margin: .6rem 0 1rem; }
+.price-guide section { margin: 1.8rem 0; }
+.price-guide h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); }
+.guide-answer { display: flex; align-items: baseline; flex-wrap: wrap; gap: .45rem; margin: .75rem 0; }
+.guide-answer strong { font-size: 2.2rem; }
+.guide-card { background: var(--white); border-left: .3rem solid var(--accent); padding: 1.2rem; }
+.guide-card p:last-child { margin-bottom: 0; }
+.guide-areas { display: flex; flex-wrap: wrap; padding: 0; gap: .45rem 1.1rem; list-style: none; }
+.price-guide th, .price-guide td { padding: .45rem .5rem; }
+.price-guide tbody th { font-weight: 500; }

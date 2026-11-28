@@ -1,7 +1,7 @@
 # Canadian Price Atlas
 
 <!-- coolcode:guide -->
-Compare all ten provinces and Canada, plus Whitehorse and Yellowknife where monthly prices are published. The northern series cover those cities only; Nunavut is explicitly marked unavailable with a link to its separate survey. Add package quantities to a basket and compare exact endpoint months. Missing prices remain missing, and CSV exports retain Statistics Canada vector identifiers.
+Look up a staple such as eggs, butter or coffee in the grocery price guides. Each guide gives the monthly average for its published package and a conversion you can compare with a flyer. Compare all ten provinces and Canada, plus Whitehorse and Yellowknife where monthly prices are published. The northern series cover those cities only; Nunavut is explicitly marked unavailable with a link to its separate survey. Add package quantities to a basket and compare exact endpoint months. Missing prices remain missing, and CSV exports retain Statistics Canada vector identifiers.
 <!-- /coolcode:guide -->
 
 The Canadian Grocery Price Comparison starts with a dozen eggs across Canada, British Columbia and Nova Scotia. The first screen shows actual published prices and their month even before JavaScript loads.
@@ -11,6 +11,8 @@ The Canadian Grocery Price Comparison starts with a dozen eggs across Canada, Br
 Add products to a basket with package quantities to compare complete totals for selected areas and exact endpoint months. Missing prices are listed, and the basket CSV includes the underlying package observations and vectors. The basket lasts for the current page session.
 
 The chart and exports run against a static JSON snapshot. Price averages describe published products over a month and geographic area. The site labels missing observations, retains published package prices in exports and distinguishes the chart’s units from source units. A package comparison uses the product’s published unit or size, and range comparisons use the first and last month with data in every selected area.
+
+The weekly build also produces permanent [grocery price guides](https://coolcode.ca/priceatlas/records/) for selected staples and areas with published values. Each guide identifies its package, reference month and source vector, converts the published amount to a practical shopping quantity, and links to the preselected chart. National pages compare one month across places. The latest available observation is explicitly dated when a local series lags.
 
 ## Geographic coverage
 

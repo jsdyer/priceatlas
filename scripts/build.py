@@ -1,5 +1,7 @@
 """Create a static regional price snapshot from Statistics Canada table 18-10-0245-01."""
 from html import escape
+
+from grocery_guides import write_guides
 import argparse
 from collections import defaultdict
 import csv
@@ -199,6 +201,8 @@ def write_default_overview(stage, snapshot):
     source = source.replace('Loading the Statistics Canada snapshot…', 'Published month ' + escape(snapshot["months"][-1]) + ' · Statistics Canada')
     if product["name"] != "Eggs, 1 dozen":
         source = source.replace("the price of a dozen eggs", "the published price for " + escape(product["name"]))
+    guide = '<a href="./records/">Browse grocery price guides</a>'
+    source = source.replace("<!-- grocery-guides -->", " · " + guide if snapshot.get("price_guides") else "")
     page.write_text(source, encoding="utf-8")
 
 
@@ -218,6 +222,7 @@ def main():
     with TemporaryDirectory(dir=ROOT) as temporary:
         staging = Path(temporary) / "dist"
         shutil.copytree(ROOT / "web", staging)
+        snapshot["price_guides"] = write_guides(staging, snapshot)
         (staging / "snapshot.json").write_text(json.dumps(snapshot, separators=(",", ":")), encoding="utf-8")
         write_default_overview(staging, snapshot)
         version_assets(staging)

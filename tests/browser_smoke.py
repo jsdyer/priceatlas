@@ -85,6 +85,22 @@ def main():
                 assert page.locator('[name=area]:checked').count() == 1
                 page.locator('#search').fill('no matching grocery product qqqqq')
                 assert 'No products match' in page.locator('#status').inner_text()
+                base = f'http://127.0.0.1:{server.server_port}/priceatlas/'
+                plain = browser.new_context(java_script_enabled=False, viewport={'width': 320, 'height': 640})
+                reader = plain.new_page()
+                reader.goto(base)
+                reader.get_by_role('link', name='Browse grocery price guides').click()
+                reader.locator('#eggs').get_by_role('link', name='Ontario', exact=True).click()
+                assert reader.locator('h1').inner_text() == 'Price of eggs in Ontario'
+                assert '18 eggs' in reader.locator('.guide-card').inner_text()
+                assert reader.evaluate('document.documentElement.scrollWidth <= innerWidth')
+                chart_url = reader.get_by_role('link', name='Open this item in the price chart and basket').get_attribute('href')
+                plain.close()
+                page.goto(f'http://127.0.0.1:{server.server_port}' + chart_url)
+                page.locator('#price-guide').wait_for(state='visible')
+                assert page.locator('#price-guide').get_attribute('href') == './records/eggs/ontario/'
+                assert page.locator('[name=area]:checked').count() == 2
+                assert page.locator('[value=ON]').is_checked()
                 assert not errors, errors
                 browser.close()
             print('Browser checks passed: all regions, city labels, missing observations, shared indexes, basket, CSV, URL restore, product search and mobile layout')

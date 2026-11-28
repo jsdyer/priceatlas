@@ -26,7 +26,7 @@
   </nav>
   <div class="wrap hero">
     <div><small>Canadian Price Atlas</small><h1>Compare Canadian grocery prices</h1><p>Start with the price of a dozen eggs in Canada, British Columbia and Nova Scotia. Choose another product or province to change the comparison.</p>
-      <p class="start-links"><a href="#explore">Choose a product</a> · <a href="#plot">View the price chart</a></p></div>
+      <p class="start-links"><a href="#explore">Choose a product</a> · <a href="#plot">View the price chart</a><!-- grocery-guides --></p></div>
     <aside class="overview">
       <h2 id="overview-product">Latest published observation</h2>
       <dl id="overview-values"></dl>
@@ -41,6 +41,7 @@
     <p id="status" role="status">Loading monthly averages…</p>
     <button type="button" id="retry" hidden>Retry loading</button>
     <div id="controls" hidden>
+      <p><a id="price-guide" hidden></a></p>
       <div class="controls">
         <label>Find a product<input id="search" type="search" placeholder="Coffee, eggs, milk…"></label>
         <div><label>Product<select id="product"></select></label><button type="button" id="basket-add">Add to basket</button></div>
